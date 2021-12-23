@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.SellListMapper">
+	<select id="read" resultType="org.zerock.domain.SellListVO">
+		select * from selllistVO where kind=#{kind} order by productnum desc
+	</select>
+	<select id="read2" resultType="org.zerock.domain.SellListVO">
+		<![CDATA[
+		select *  from (select * from selllistVO where kind=#{kind} order by quantity desc) where rownum<=5
+		]]>
+	</select>
+	 
+	 <select id="get" resultType="org.zerock.domain.SellListVO">
+		select * from selllistVO where productnum=#{productnum}
+	</select>
+	 
+ 	<resultMap type="org.zerock.domain.SellListVO" id="read">
+		<id property="productnum" column="PRODUCTNUM"/>
+		<result property="productnum" column="PRODUCTNUM"/>
+		<result property="name" column="NAME"/>
+		<result property="kind" column="KIND"/>
+		<result property="price" column="PRICE"/>
+		<result property="content" column="CONTENT"/>
+		<result property="image" column="IMAGE"/>
+		<result property="regdate" column="REGDATE"/>
+		<result property="quantity" column="QUANTITY"/>
+		<result property="username" column="username"/>
+	
+	</resultMap>
+	
+	<select id="selectproduct" resultType="org.zerock.domain.SellListVO">
+		select * from SELLLISTVO where productnum=#{productnum}
+	</select>
+	
+	<insert id="insertSelectKey">
+		<selectKey keyProperty="productnum" order="BEFORE" resultType="long">
+			select SEQ_SELLLISTVO.nextval from dual
+		</selectKey>
+		insert into selllistVO  (productnum,name,kind,price,content,REGDATE,quantity,username)
+		values(#{productnum},#{name},#{kind},#{price},#{content},sysdate,#{quantity},#{username})
+	</insert>
+	
+	<sql id="criteria">
+		<trim prefix="(" suffix=") and " prefixOverrides="or">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="or">
+					<choose>
+						<when test="type=='T'.toString()">
+							kind like '%'||#{keyword}||'%'							
+						</when>
+						<when test="type=='C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type=='W'.toString()">
+							name like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	
+	<select id="getListWithPaging" resultType="org.zerock.domain.SellListVO">
+		<![CDATA[
+			select productnum,name,kind,price,content,image,regdate,quantity
+			from (
+				select /*+INDEX_DESC(selllistvo selllistvo_pk) */
+			    rownum rn,productnum,name,kind,price,content,image,regdate,quantity
+			    from selllistvo
+			    where 
+		]]>
+		
+		<include refid="criteria"/>
+			
+		<![CDATA[
+			    rownum<=#{pageNum} * #{amount}
+			) where rn>(#{pageNum}-1) * #{amount}
+		]]>
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(*)
+		from selllistVO
+	</select>
+	
+	
+	<delete id="remove">
+		delete from selllistVO where productnum=#{productnum}
+	</delete>
+	
+	<update id="update">
+		update selllistVO
+		set productnum=#{productnum}, NAME=#{name},KIND=#{kind},PRICE=#{price},CONTENT=#{content},QUANTITY=#{quantity},username=#{username}
+		where productnum=#{productnum}
+	</update>
+
+  </mapper>
+

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.NoticeReplyMapper">
+	
+	<insert id="insert">
+		insert into notice_reply (rno,bno,reply,replyer)
+		values (seq_notice_reply.nextval,#{bno},#{reply},#{replyer})
+	</insert>
+	
+	<select id="read" resultType="org.zerock.domain.NoticeReplyVO">
+		select * from notice_reply where rno=#{rno}
+	</select>
+	 
+	<delete id="delete">
+		delete from notice_reply where rno=#{rno}
+	</delete>
+	
+	<update id="update">
+		update notice_reply 
+		set reply=#{reply},updatedate=sysdate
+		where rno=#{rno}
+	</update>
+	
+	<select id="getListWithPaging" resultType="org.zerock.domain.NoticeReplyVO">
+	<![CDATA[
+		select rno,bno,reply,replyer,replydate,updatedate
+		from (
+		    select /*+INDEX(notice_reply idx_reply) */
+		        rownum rn,bno,rno,reply,replyer,replyDate,updatedate
+		    from notice_reply
+		    where bno = #{bno}
+		        and rno > 0
+		        and rownum <= #{cri.pageNum} * #{cri.amount}
+		) where rn > (#{cri.pageNum}-1) * #{cri.amount}
+	]]>
+	</select>
+	
+	<select id="getCountByBno" resultType="int">
+		select count(rno) from notice_reply where bno=#{bno}
+	</select>
+	
+</mapper>
+

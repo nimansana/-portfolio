@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.SellListAttachMapper">
+
+	<insert id="insert">
+		insert into SELLLISTVO_ATTACH (uuid,uploadpath,filename,filetype,productnum)
+		values (#{uuid},#{uploadPath},#{fileName},#{fileType},#{productnum})
+	</insert>
+		<insert id="insertList">
+		insert into SELLLISTVO_ATTACH (uuid,uploadpath,filename,filetype,productnum)
+		values (#{uuid},#{uploadPath},#{fileName},#{fileType},#{productnum})
+	</insert>
+	
+	<delete id="delete">
+		delete from SELLLISTVO_ATTACH where uuid=#{uuid}
+	</delete>
+	
+	<select id="findByproductnum" resultType="org.zerock.domain.SellListAttachVO">
+		select * from SELLLISTVO_ATTACH where productnum=#{productnum}
+	</select>
+	
+	<select id="getA" resultType="org.zerock.domain.SellListAttachVO">
+		select * from SELLLISTVO_ATTACH where productnum=#{productnum}
+	</select>
+	
+	<delete id="deleteAll">
+		delete from SELLLISTVO_ATTACH where productnum=#{productnum}
+	</delete>
+	
+	<select id="getOldFiles" resultType="org.zerock.domain.SellListAttachVO">
+		select * from SELLLISTVO_ATTACH where uploadpath=to_char(sysdate,'yyyy\mm\dd')
+	</select>
+	
+	<update id="update">
+		update SELLLISTVO_ATTACH
+		set uuid=#{uuid}, uploadpath=#{uploadpath},filename=#{filename},productnum=#{productnum}
+		where productnum=#{productnum}
+	</update>
+</mapper>
+

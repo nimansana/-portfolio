@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.ProductAttachMapper">
+
+	<insert id="insert">
+		insert into product_board_attach (uuid,uploadpath,filename,filetype,bno)
+		values (#{uuid},#{uploadPath},#{fileName},#{fileType},#{bno})
+	</insert>
+	
+	<delete id="delete">
+		delete from product_board_attach where uuid=#{uuid}
+	</delete>
+	
+	<select id="findByBno" resultType="org.zerock.domain.ProductAttachVO">
+		select * from product_board_attach where bno=#{bno}
+	</select>
+	
+	<delete id="deleteAll">
+		delete from product_board_attach where bno=#{bno}
+	</delete>
+	
+	<select id="getOldFiles" resultType="org.zerock.domain.ProductAttachVO">
+		select * from product_board_attach where uploadpath=to_char(sysdate,'yyyy\mm\dd')
+	</select>
+</mapper>
+

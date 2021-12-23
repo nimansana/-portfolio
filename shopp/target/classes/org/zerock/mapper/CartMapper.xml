@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.CartMapper">
+	<select id="getCartList" resultType="org.zerock.domain.CartVO">
+		<![CDATA[
+			select * from product_cart where userid=#{userid} 
+		]]>
+	</select>
+	
+	
+	<insert id="insert">
+		insert into product_cart (userid,bno,quantity,state,cartnum)
+		values(#{userid},#{bno},1,'notsell',seq_cart.nextval)
+	</insert>
+	<select id="read" resultType="org.zerock.domain.CartVO">
+		select * from product_cart where bno=#{bno}
+	</select>
+	
+	<delete id="delete">
+		delete from product_cart where cartnum=#{cartnum}
+	</delete>
+	
+	<update id="update">
+		update product_cart
+		set quantity=#{quantity},state=notsell
+		where cartnum=#{cartnum}
+	</update>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(*) from product_cart 
+		where userid=#{userid}
+	</select>
+		<select id="Alreadyregister" resultType="int">
+		select count(*) from product_cart
+		where bno = #{bno} and userid = #{userid}
+
+	</select>
+</mapper>
+

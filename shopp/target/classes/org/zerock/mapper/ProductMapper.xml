@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.ProductMapper">
+	<select id="getList" resultType="org.zerock.domain.ProductVO">
+	<![CDATA[
+		select * from product_board where bno>0
+	]]>
+	
+	<include refid="criteria"/>
+	</select>
+	
+	<sql id="criteria">
+		<trim prefix="(" suffix=") and " prefixOverrides="or">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="or">
+					<choose>
+						<when test="type=='T'.toString()">
+							title like '%'||#{keyword}||'%'							
+						</when>
+						<when test="type=='C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type=='W'.toString()">
+							writer like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	<select id="getListNoPaging" resultType="org.zerock.domain.ProductVO">
+	<![CDATA[
+		select bno,title,content,writer,regdate,updatedate,replycnt,price,types,category, uuid, filename
+		from (
+			select /*+INDEX_DESC(product_board product_board_pk) */
+		    rownum rn,board.bno,board.title,board.content,board.writer,board.regdate,board.updatedate,board.replycnt,board.price,board.types,board.category,attach.uuid,attach.filename
+		    from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+		    where types='outer']]>
+		<include refid="criteria"/>
+	<![CDATA[	
+		) order by updatedate
+	]]>
+	</select>
+	
+		<select id="getListAdmin" resultType="org.zerock.domain.ProductVO">
+	<![CDATA[
+		select bno,title,content,writer,regdate,updatedate,replycnt,price,types,category, uuid, filename,stack
+		from (
+			select /*+INDEX_DESC(product_board product_board_pk) */
+		    rownum rn,board.bno,board.title,board.content,board.writer,board.regdate,board.updatedate,board.stack,board.replycnt,board.price,board.types,board.category,attach.uuid,attach.filename
+		    from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+		    ]]>
+		<include refid="criteria"/>
+	<![CDATA[	
+		) order by updatedate
+	]]>
+	</select>
+	
+	<select id="getListWithPaging" resultType="org.zerock.domain.ProductVO">
+	<![CDATA[
+		select bno,title,content,writer,regdate,updatedate,replycnt,price,types,category, uuid, filename
+		from (
+			select /*+INDEX_DESC(product_board product_board_pk) */
+		    rownum rn,board.bno,board.title,board.content,board.writer,board.regdate,board.updatedate,board.replycnt,board.price,board.types,board.category,attach.uuid,attach.filename
+		    from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+		    where types='outer' and
+	]]>
+	
+			<include refid="criteria"/>
+		
+	<![CDATA[
+		    rownum<=#{pageNum} * #{amount}
+		) where rn>(#{pageNum}-1) * #{amount}
+		order by updatedate desc
+	]]>
+	</select>
+	
+	
+	<insert id="insert">
+		insert into product_board (bno,title,content,writer,price,types,category)
+		values(seq_product.nextval,#{title},#{content},#{writer},#{price},#{types},#{category})
+	</insert>
+	
+	<insert id="insertSelectKey">
+		<selectKey keyProperty="bno" order="BEFORE" resultType="long">
+			select seq_product.nextval from dual
+		</selectKey>
+		insert into product_board (bno,title,content,writer,price,types,category)
+		values(#{bno},#{title},#{content},#{writer},#{price},#{types},#{category})
+	</insert>
+	<select id="read" resultType="org.zerock.domain.ProductVO">
+		select bno, title, content, writer, price, types,stack, category, regdate, updatedate
+		from product_board
+		where bno=#{bno}
+	</select>
+	<select id="readFile" resultType="org.zerock.domain.ProductVO">
+		select board.bno, title, content, writer, price, types,stack, category, regdate, updatedate, uuid, filename
+		from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+		where board.bno=#{bno}
+	</select>
+<!-- ***************************************************************************** -->
+	<select id="readTypeA" resultType="org.zerock.domain.ProductVO">
+		<![CDATA[
+			select board.bno,title,content,writer,regdate,updatedate,replycnt,price,types,category,uuid,filename
+			from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+			where types='outer' and rownum<=40 order by updatedate desc
+		]]>
+	</select>
+	<select id="readTypeB" resultType="org.zerock.domain.ProductVO">
+		<![CDATA[
+			select board.bno,title,content,writer,regdate,updatedate,replycnt,price,types,category,uuid,filename
+			from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+			where types='top' and rownum<=10 order by updatedate desc
+		]]>
+	</select>
+	<select id="readTypeC" resultType="org.zerock.domain.ProductVO">
+		<![CDATA[
+			select board.bno,title,content,writer,regdate,updatedate,replycnt,price,types,category,uuid,filename
+			from product_board board left outer join product_board_attach attach on board.bno=attach.bno
+			where types='pants' and rownum<=10 order by updatedate desc
+		]]>
+	</select>
+<!-- ***************************************************************************** -->
+	
+	
+	<delete id="delete">
+		delete from product_board where bno=#{bno}
+	</delete>
+	
+	<update id="update">
+		update product_board
+		set types=#{types}, category=#{category}, title=#{title}, content=#{content}, writer=#{writer}, price=#{price}, updateDate=sysdate
+		where bno=#{bno}
+	</update>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(*) from product_board 
+		where
+		
+		<include refid="criteria"/>
+		
+		bno>0 and types='outer'
+	</select>
+	<select id="getTotalCountA" resultType="int">
+		select count(*) from product_board 
+		where
+		
+		<include refid="criteria"/>
+		
+		bno>0 and types='outer'
+	</select>
+	
+	<update id="updateReplyCnt">
+		update product_board 
+		set replycnt=replycnt + #{amount}
+		where bno=#{bno}
+	</update>
+
+	<select id="get2" resultType="org.zerock.domain.ProductVO">
+		select * 
+		from product_board board 
+		left outer join product_board_attach attach on board.bno=attach.bno 
+		left outer join product_cart cart on board.bno=cart.bno 
+		where cart.userid=#{userid}
+	</select>
+	
+	<select id="getorder" resultType="org.zerock.domain.ProductVO">
+		select * 
+		from product_board board  
+		left outer join product_cart cart on board.bno=cart.bno 
+		where cart.cartnum=#{cartnum}
+	</select>
+	
+	<update id="updateQuan">
+		update product_board
+		set stack=stack-#{sales}
+		where bno=#{bno}
+	</update>
+	
+	<select id="getImg" resultType="org.zerock.domain.ProductVO">
+		select *
+		from product_board product
+		left outer join product_board_attach attach on product.bno=attach.bno
+		where product.bno=#{bno}
+	</select> 
+	
+</mapper>
+

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+<mapper namespace="org.zerock.mapper.AdminMapper">
+	
+	<sql id="cri">
+		<trim prefix="(" suffix=") and " prefixOverrides="or">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="or">
+					<choose>
+						<when test="type=='T'.toString()">
+							serialnum like '%'||#{keyword}||'%'							
+						</when>
+						<when test="type=='C'.toString()">
+							userid like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+		<sql id="criteria">
+		<trim prefix="(" suffix=") and " prefixOverrides="or">
+			<foreach item="type" collection="typeArr">
+				<trim prefix="or">
+					<choose>
+						<when test="type=='T'.toString()">
+							title like '%'||#{keyword}||'%'							
+						</when>
+						<when test="type=='C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type=='W'.toString()">
+							writer like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+	
+	<select id="memberList" resultType="org.zerock.domain.MemberVO">
+	<![CDATA[
+		select *
+		from (
+			select /*+INDEX_DESC(tbl_member SYS_C0011243) */
+		    rownum rn,userid,userpw,username,email,phone,regdate,updatedate,address1,address2,address3,address4,address5
+		    from tbl_member
+		    where 
+	]]>
+	
+			<include refid="criteria"/>
+		
+	<![CDATA[
+		    rownum<=#{pageNum} * #{amount}
+		) where rn>(#{pageNum}-1) * #{amount}
+		order by updatedate desc
+	]]>
+	</select>
+	
+	<select id="getTotalCount" resultType="int">
+		select count(*) from product_board 
+		where
+		
+		<include refid="criteria"/>
+		
+		bno>0
+	</select>
+	
+	<select id="getMember" resultType="org.zerock.domain.MemberVO">
+		select *
+		from tbl_member mem left outer join tbl_member_auth auth on mem.userid=auth.userid
+		where mem.userid=#{userid}
+	</select>
+	
+	<update id="modify">
+		update tbl_member
+		set userpw=#{userpw}, phone=#{phone}, email=#{email}, updateDate=sysdate, address1=#{address1}, address2=#{address2}, address3=#{address3}, address4=#{address4}, address5=#{address5}, 
+		where userid=#{userid}
+	</update>
+	<update id="modifyAuth">
+		update tbl_member_auth
+		set auth=#{auth}
+		where userid=#{userid}
+	</update>
+	
+	<select id="getAuth" resultType="org.zerock.domain.MemberVO">
+		select mem.userid, auth
+		from tbl_member mem left outer join tbl_member_auth auth on mem.userid=auth.userid
+		where mem.userid=#{userid}
+	</select>
+	
+	<select id="getorder" resultType="org.zerock.domain.OrderVO">
+		select * from ( select rownum rn, ordernum,serialnum,orderdate,state,totalprice,userid,orderPhone,bno,Name,orderaddress1,orderaddress2,orderaddress3,orderaddress4,orderaddress5,quantity  from tbl_order where
+			<include refid="cri"/>
+			<![CDATA[
+			rownum<=#{pageNum} * #{amount}) where		    
+		  rn>(#{pageNum}-1) * #{amount} order by orderdate desc,Serialnum asc 
+	]]>
+	</select>
+	
+		<select id="getTotalCountCart" resultType="int">
+		select count(*) from tbl_order
+		where
+			<include refid="criteria"/>
+		bno>0
+	</select>
+	
+	<update id="delivery">
+	    update tbl_order set state='배송시작' where ordernum=#{ordernum}
+	</update>
+	
+	<update id="cansel">
+	    update tbl_order set state='주문취소' where ordernum=#{ordernum}
+	</update>
+	
+	<update id="updatestack">
+	    update product_board set stack=#{update_stack} where bno=#{bno}
+	</update>
+</mapper>
+
